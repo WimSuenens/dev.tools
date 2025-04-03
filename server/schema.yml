@@ -1,0 +1,72 @@
+openapi: 3.0.3
+info:
+  title: Your Project API
+  version: 1.0.0
+  description: Your project description
+paths:
+  /api/peppol/validate/:
+    get:
+      operationId: peppol_validate_list
+      description: List all Peppol validate requests.
+      tags:
+      - peppol
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PeppolValidate'
+          description: ''
+    post:
+      operationId: peppol_validate_create
+      description: Validate a Peppol UBL file.
+      tags:
+      - peppol
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PeppolValidate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PeppolValidate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PeppolValidate'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PeppolValidate'
+          description: ''
+components:
+  schemas:
+    PeppolValidate:
+      type: object
+      description: A serializer used for Peppol validation
+      properties:
+        ubl:
+          type: string
+          format: uri
+      required:
+      - ubl
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid

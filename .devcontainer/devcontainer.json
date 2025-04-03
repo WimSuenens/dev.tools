@@ -1,0 +1,57 @@
+{
+    "name": "Python Tools - Django",
+    // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+    // "image": "python:3-alpine",
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "application",
+    "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+    // https://containers.dev/features
+    "features": {
+        "ghcr.io/devcontainers-extra/features/pipenv:2": {
+            "version": "2.0.17"
+        },
+        "ghcr.io/devcontainers-extra/features/pylint:2": {}
+    },
+    "containerUser": "vscode",
+    "remoteUser": "vscode",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "batisteo.vscode-django",
+                "ms-python.pylint",
+                "ahmadalli.vscode-nginx-conf"
+            ]
+        }
+    },
+    /*
+    "runArgs": [
+		"--env-file",
+		".env"
+	],
+    */
+    // "customizations": {
+    //     "vscode": {
+    //         "extensions": [
+    //             "ms-python.python",
+	// 			"ms-python.vscode-pylance",
+	// 			"njpwerner.autodocstring"
+    //         ],
+    //         "settings": {
+    //             "python.locator": "js",
+    //             "python.terminal.activateEnvInCurrentTerminal": true,
+    //             "python.defaultInterpreterPath": ".venv/bin/python"
+    //         }
+    //     }
+    // },
+    // "containerEnv": {
+    //     "SHELL": "/bin/bash"
+    // },
+    // "initializeCommand": "echo 'initializeCommand'",
+    // "onCreateCommand": "echo 'onCreateCommand'",
+    // "updateContentCommand": "echo 'updateContentCommand'",
+    // "postCreateCommand": "echo 'postCreateCommand'",
+    "postStartCommand": "pipenv install"
+    // "postStartCommand": "python3 -m venv .venv",
+    // "postStartCommand": "pipenv shell",
+    // "postAttachCommand": "ls -al && . .venv/bin/activate && pip install -r requirements.txt"
+}
