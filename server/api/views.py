@@ -1,5 +1,6 @@
 """Some Test"""
 
+from base64 import b64encode
 from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from rest_framework import status
@@ -9,7 +10,6 @@ from rest_framework.response import Response
 from api.serializers import PeppolValidateSerializer
 from api.utils import validate_peppol, transform_to_html
 import pdfkit
-import base64
 
 # ViewSets define the view behavior.
 class PeppolValidateViewSet(ViewSet):
@@ -69,12 +69,9 @@ class PeppolToHtmlViewSet(ViewSet):
             file: InMemoryUploadedFile = serializer.validated_data['ubl']
 
             response = transform_to_html(file)
-            # pdf = pdfkit.from_string(response, '/tmp/hello.pdf')
             pdf = pdfkit.from_string(response)
-            test = base64.b64encode(pdf).decode('utf-8')
-            return Response({"test": test})
-
-            # return Response(test, headers={"Content-Disposition": "attachment; filename=hello.pdf"})
+            base64 = b64encode(pdf).decode('utf-8')
+            return Response({"base64": base64})
         except Exception as e:
             print(f"Error transforming to HTML: {e}")
             return f"<html><body>Error transforming to HTML</body></html>"

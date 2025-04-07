@@ -7,10 +7,10 @@ services:
   application:
     container_name: python-dev-tools
     # https://github.com/devcontainers/images/blob/main/src/python/README.md
-    image: "mcr.microsoft.com/devcontainers/python:3.11-bullseye"
-    # build: 
-    #   context: .
-    #   dockerfile: Dockerfile
+    # image: "mcr.microsoft.com/devcontainers/python:3.11-bullseye"
+    build: 
+      context: .
+      dockerfile: Dockerfile
     volumes:
       - ../..:/workspaces:cached
     depends_on:

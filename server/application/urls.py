@@ -26,7 +26,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 ]
 
-if ((not settings.DEBUG) and os.getenv("DJANGO_ALLOWED_HOSTS", "localhost").lower() == "localhost"):
+if ((not settings.DEBUG) and os.getenv("ALLOWED_HOSTS", "localhost").lower() == "localhost"):
     urlpatterns += [
         # https://docs.djangoproject.com/en/5.1/ref/views/#django.views.static.serve
         re_path(

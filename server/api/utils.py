@@ -7,8 +7,6 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.conf import settings
 from saxonche import PySaxonProcessor, PyXdmValue
 from werkzeug.utils import secure_filename
-from lxml import etree
-#import lxml.etree.ElementTree as ET
 
 def transform_to_html(file: InMemoryUploadedFile) -> str:
     """

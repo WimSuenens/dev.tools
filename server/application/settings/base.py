@@ -33,7 +33,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 ENVIRONMENT= os.environ.get('ENVIRONMENT') or 'development'
 DEBUG = os.environ.get('DEBUG') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS').split(',') if os.environ.get('ALLOWED_HOSTS') else [
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(',') if os.environ.get('ALLOWED_HOSTS') else [
   'localhost',
   '127.0.0.1',
 ]
