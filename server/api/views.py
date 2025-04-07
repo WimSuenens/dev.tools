@@ -7,7 +7,9 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.request import Request
 from rest_framework.response import Response
 from api.serializers import PeppolValidateSerializer
-from api.utils import validate_peppol
+from api.utils import validate_peppol, transform_to_html
+import pdfkit
+import base64
 
 # ViewSets define the view behavior.
 class PeppolValidateViewSet(ViewSet):
@@ -39,3 +41,42 @@ class PeppolValidateViewSet(ViewSet):
 
         response = validate_peppol(file)
         return Response(response, status=status.HTTP_200_OK)
+
+class PeppolToHtmlViewSet(ViewSet):
+    """
+    A viewset to handle Peppol to Html requests.
+    """
+    serializer_class = PeppolValidateSerializer
+
+    def list(self, request: Request):
+        """
+        List all Peppol validate requests.
+        """
+        username = request.user.username or "anonymous"
+        message = f"Hi {username}, welcome at the endpoint to visualize a Peppol UBL files."
+        return Response(message, status=status.HTTP_200_OK)
+
+    def create(self, request: Request):
+        """
+        Validate a Peppol UBL file.
+        """
+        try:
+            serializer = PeppolValidateSerializer(data=request.data)
+
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            file: InMemoryUploadedFile = serializer.validated_data['ubl']
+
+            response = transform_to_html(file)
+            # pdf = pdfkit.from_string(response, '/tmp/hello.pdf')
+            pdf = pdfkit.from_string(response)
+            test = base64.b64encode(pdf).decode('utf-8')
+            return Response({"test": test})
+
+            # return Response(test, headers={"Content-Disposition": "attachment; filename=hello.pdf"})
+        except Exception as e:
+            print(f"Error transforming to HTML: {e}")
+            return f"<html><body>Error transforming to HTML</body></html>"
+
+        # return Response(response, status=status.HTTP_200_OK)

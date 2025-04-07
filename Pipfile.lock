@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "1c3df2efefd890335f4a9300b9bc0000828b9b4827d2d156953a357f7bcd4fe7"
+            "sha256": "7fd66f811c136e0d83e68877186d759df308849ac1db404c6b06b67fd4b81c64"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -312,6 +312,15 @@
             ],
             "markers": "python_version >= '3.9'",
             "version": "==3.0.2"
+        },
+        "pdfkit": {
+            "hashes": [
+                "sha256:992f821e1e18fc8a0e701ecae24b51a2d598296a180caee0a24c0af181da02a9",
+                "sha256:a7a4ca0d978e44fa8310c4909f087052430a6e8e0b1dd7ceef657f139789f96f",
+                "sha256:cc122e5aed594198ff7aaa566f2950d2163763576ab891c161bb1f6c630f5a8e"
+            ],
+            "index": "pypi",
+            "version": "==1.0.0"
         },
         "psycopg2": {
             "hashes": [

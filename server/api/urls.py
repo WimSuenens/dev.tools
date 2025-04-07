@@ -18,11 +18,12 @@ from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from rest_framework import routers
 
-from api.views import PeppolValidateViewSet
+from api.views import PeppolValidateViewSet, PeppolToHtmlViewSet
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
-router.register(r'peppol/validate', PeppolValidateViewSet, basename="peppol")
+router.register(r'peppol/validate', PeppolValidateViewSet, basename="peppol_validate")
+router.register(r'peppol/convert_to_html', PeppolToHtmlViewSet, basename="peppol_html")
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.

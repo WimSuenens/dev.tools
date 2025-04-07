@@ -14,6 +14,7 @@ werkzeug = "*"
 python-dotenv = "*"
 psycopg2 = "*"
 lxml = "*"
+pdfkit = "*"
 
 [dev-packages]
 
