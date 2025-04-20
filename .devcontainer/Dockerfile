@@ -19,10 +19,16 @@ RUN arch=$(arch | sed s/aarch64/arm64/ | sed s/x86_64/amd64/) && \
 
 RUN sudo apt-get update && sudo apt install -y -f /tmp/wkhtmltox.deb
 
+RUN apt-get install -y build-essential \
+    libpoppler-cpp-dev \
+    ghostscript \
+    ocrmypdf \
+    poppler-utils
+
 # RUN arch=$(arch | sed s/aarch64/arm64/ | sed s/x86_64/amd64/) && \
 #     sudo apt install -f /tmp/wkhtmltox_0.12.6.1-2.bullseye_${arch}.deb
 
-    # RUN apt-get install -y \ 
+# RUN apt-get install -y \ 
 #     python3 \
 #     python3-pip
 

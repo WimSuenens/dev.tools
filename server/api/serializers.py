@@ -4,7 +4,9 @@ API Serializers
 
 # from django.contrib.auth.models import Group, User
 # from rest_framework.serializers import HyperlinkedModelSerializer, Serializer, FileField
-from rest_framework.serializers import Serializer, FileField
+import os
+from django.forms import ValidationError
+from rest_framework.serializers import Serializer, FileField, BooleanField
 
 # Serializers define the API representation.
 # class UserSerializer(HyperlinkedModelSerializer):
@@ -17,7 +19,7 @@ from rest_framework.serializers import Serializer, FileField
 #         model = Group
 #         fields = ['url', 'name']
 
-class PeppolValidateSerializer(Serializer):
+class PeppolUploadSerializer(Serializer):
     """
     A serializer used for Peppol validation
     """
@@ -32,3 +34,19 @@ class PeppolValidateSerializer(Serializer):
     #     # Implement your update logic here
     #     # If you don't need to update anything, just return instance
     #     return instance
+
+def validate_file_extension(value):
+    """"
+    Validate the file extension of the uploaded file.
+    """
+    ext = os.path.splitext(value.name)[1]
+    valid_extensions = ['.pdf']
+    if not ext in valid_extensions:
+        raise ValidationError('File not supported!')
+
+class PdfUploadSerializer(Serializer):
+    """
+    A serializer used for PDF conversion
+    """
+    pdf = FileField(validators=[validate_file_extension])
+    
