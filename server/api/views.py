@@ -1,20 +1,18 @@
 """Some Test"""
 
 import io
-import os
 import base64
 import zipfile
-import tempfile
 from pathlib import Path
 from base64 import b64encode
 from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 from rest_framework import status
 from rest_framework.viewsets import ViewSet
 from rest_framework.request import Request
 from rest_framework.response import Response
-from api.serializers import PeppolUploadSerializer, PdfUploadSerializer
+from api.serializers import PeppolUploadSerializer, PdfUploadSerializer, OCRMyPDFSerializer
 from api.utils import validate_peppol, transform_to_html
 import pdfkit
 import pdf2image
@@ -177,7 +175,7 @@ class OcrMyPdfViewSet(ViewSet):
     """
     A viewset to OCR a PDF file.
     """
-    serializer_class = PdfUploadSerializer
+    serializer_class = OCRMyPDFSerializer
 
     def list(self, request: Request):
         """
@@ -190,30 +188,44 @@ class OcrMyPdfViewSet(ViewSet):
         """
         """
         try:
-            serializer = PdfUploadSerializer(data=request.data)
+            serializer = OCRMyPDFSerializer(data=request.data)
 
             if not serializer.is_valid():
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             pdf: InMemoryUploadedFile = serializer.validated_data['pdf']
+            content_type = pdf.content_type
+            as_attachment = serializer.validated_data['as_attachment']
             filename = secure_filename(pdf.name)
 
             pdf_data = pdf.read()
             input_buffer = io.BytesIO(pdf_data)
             output_buffer = io.BytesIO()
 
-            # with tempfile.TemporaryDirectory() as temp_dir:
-            #     # Define virtual paths that ocrmypdf will use
-            #     input_path = os.path.join(temp_dir, 'input.pdf')
-            #     output_path = os.path.join(temp_dir, 'output.pdf')
-
-            ocrmypdf.ocr(input_buffer, output_buffer, clean=True, deskew=True, rotate_pages=True, image_dpi=300, output_type="pdfa", sidecar="-", skip_text=True, invalidate_digital_signatures=True)
+            ocrmypdf.ocr(
+                input_buffer,
+                output_buffer,
+                clean=True,
+                deskew=True,
+                rotate_pages=True,
+                image_dpi=300,
+                output_type="pdfa",
+                sidecar="-",
+                skip_text=True,
+                invalidate_digital_signatures=True
+            )
             output_buffer.seek(0)
-            response = HttpResponse(output_buffer, content_type='application/pdf')
-            response['Content-Disposition'] = f'attachment; filename="{filename}"'
-            return response
+            return FileResponse(
+                output_buffer,
+                as_attachment=as_attachment,
+                filename=filename,
+                content_type=content_type
+            )
+            # response = HttpResponse(output_buffer, content_type='application/pdf')
+            # response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            # return response
         except Exception as e:
-            return Response(f"<html><body>Error converting to PDF</body></html>", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(f"<html><body>Error converting to PDF : {e}</body></html>", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 class PdfExtractTextViewSet(ViewSet):
     """

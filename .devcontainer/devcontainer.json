@@ -7,9 +7,7 @@
     "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
     // https://containers.dev/features
     "features": {
-        "ghcr.io/devcontainers-extra/features/pipenv:2": {
-            "version": "2.0.17"
-        },
+        "ghcr.io/devcontainers-extra/features/pipenv:2": {},
         "ghcr.io/devcontainers-extra/features/pylint:2": {}
     },
     "containerUser": "vscode",
@@ -43,14 +41,18 @@
     //         }
     //     }
     // },
-    // "containerEnv": {
-    //     "SHELL": "/bin/bash"
-    // },
+    "containerEnv": {
+        "SHELL": "/bin/bash"
+    },
     // "initializeCommand": "echo 'initializeCommand'",
     // "onCreateCommand": "echo 'onCreateCommand'",
     // "updateContentCommand": "echo 'updateContentCommand'",
     // "postCreateCommand": "echo 'postCreateCommand'",
+    
+    // "postStartCommand": "whoami"
+    // "postStartCommand": "whoami && pipx install pipenv && pipx ensurepath && source ~/.bashrc && pipenv install"
     "postStartCommand": "pipenv install"
+    
     // "postStartCommand": "python3 -m venv .venv",
     // "postStartCommand": "pipenv shell",
     // "postAttachCommand": "ls -al && . .venv/bin/activate && pip install -r requirements.txt"

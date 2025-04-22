@@ -6,7 +6,7 @@ API Serializers
 # from rest_framework.serializers import HyperlinkedModelSerializer, Serializer, FileField
 import os
 from django.forms import ValidationError
-from rest_framework.serializers import Serializer, FileField, BooleanField
+from rest_framework.serializers import Serializer, FileField, BooleanField, CharField
 
 # Serializers define the API representation.
 # class UserSerializer(HyperlinkedModelSerializer):
@@ -49,4 +49,17 @@ class PdfUploadSerializer(Serializer):
     A serializer used for PDF conversion
     """
     pdf = FileField(validators=[validate_file_extension])
+
+class OCRMyPDFSerializer(Serializer):
+    """
+    A serializer used to OCR a PDF
+    """
+    pdf = FileField(validators=[validate_file_extension])
+    as_attachment = BooleanField(default=True, initial=True)
+    clean = BooleanField(default=True, initial=True)
+    deskew = BooleanField(default=True, initial=True)
+    rotate_pages = BooleanField(default=True, initial=True)
+    output_type = CharField(default="pdfa", initial="pdfa")
+    skip_text = BooleanField(default=True, initial=True)
+    invalidate_digital_signatures = BooleanField(default=True, initial=True)
     
