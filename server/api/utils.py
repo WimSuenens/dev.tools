@@ -50,6 +50,7 @@ def validate_peppol(file: InMemoryUploadedFile):
     content_type = file.content_type
     filename = secure_filename(file.name)
     errors = []
+    flags = []
     content: str = read_xml_from_file(file)
     with PySaxonProcessor(license=False) as proc:
         stylesheet = 'CEN-EN16931-UBL.xsl'
@@ -61,7 +62,7 @@ def validate_peppol(file: InMemoryUploadedFile):
                 info = {"stylesheet": stylesheet, "message": element.string_value}
                 for attribute in element.attributes:
                     info[attribute.local_name] = attribute.string_value
-                errors.append(info)
+                errors.append(info) if (info["flag"] == "fatal") else flags.append(info)
 
         stylesheet = 'PEPPOL-EN16931-UBL.xsl'
         stylesheet_file = os.path.join(settings.BASE_DIR, 'server/api/ubl/' + stylesheet)
@@ -72,7 +73,7 @@ def validate_peppol(file: InMemoryUploadedFile):
                 info = {"stylesheet": stylesheet, "message": element.string_value}
                 for attribute in element.attributes:
                     info[attribute.local_name] = attribute.string_value
-                errors.append(info)
+                errors.append(info) if (info["flag"] == "fatal") else flags.append(info)
 
     # html = transform_to_html(content)
 
@@ -84,6 +85,7 @@ def validate_peppol(file: InMemoryUploadedFile):
         # "output": output,
         "valid": not errors,
         "errors": errors,
+        "flags": flags,
         # "html": html,
     })
     return response
