@@ -16,6 +16,7 @@ markdown = "*"
 pdf2image = "*"
 ocrmypdf = "*"
 psycopg2-binary = "*"
+django-tailwind = {extras = ["reload"], version = "*"}
 
 [dev-packages]
 

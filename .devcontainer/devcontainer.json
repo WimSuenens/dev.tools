@@ -8,7 +8,8 @@
     // https://containers.dev/features
     "features": {
         "ghcr.io/devcontainers-extra/features/pipenv:2": {},
-        "ghcr.io/devcontainers-extra/features/pylint:2": {}
+        "ghcr.io/devcontainers-extra/features/pylint:2": {},
+        "ghcr.io/devcontainers/features/node:1": {} // Node.js is required for tailwind
     },
     "containerUser": "vscode",
     "remoteUser": "vscode",
@@ -17,7 +18,11 @@
             "extensions": [
                 "batisteo.vscode-django",
                 "ms-python.pylint",
-                "ahmadalli.vscode-nginx-conf"
+                "ahmadalli.vscode-nginx-conf",
+                "esbenp.prettier-vscode",
+                "formulahendry.auto-rename-tag",
+                "bradlc.vscode-tailwindcss",
+                "csstools.postcss"
             ]
         }
     },
