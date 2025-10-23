@@ -18,11 +18,13 @@ from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from rest_framework import routers
 
-from api.views import PeppolValidateViewSet, PeppolToHtmlViewSet, PdfConvertToImagesViewSet, PdfConvertToBase64ImagesViewSet, OcrMyPdfViewSet
+from api.views import PeppolValidateBillingViewSet, PeppolValidateSelfBillingViewSet, PeppolToHtmlViewSet, PdfConvertToImagesViewSet, PdfConvertToBase64ImagesViewSet, OcrMyPdfViewSet
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
-router.register(r'peppol/validate', PeppolValidateViewSet, basename="peppol_validate")
+router.register(r'peppol/validate', PeppolValidateBillingViewSet, basename="peppol_validate")
+router.register(r'peppol/validate/billing', PeppolValidateBillingViewSet, basename="peppol_validate_billing")
+router.register(r'peppol/validate/self_billing', PeppolValidateSelfBillingViewSet, basename="peppol_validate_self_billing")
 router.register(r'peppol/convert_to_html', PeppolToHtmlViewSet, basename="peppol_html")
 router.register(r'pdf/convert_to_images', PdfConvertToImagesViewSet, basename="pdf_convert_to_images")
 router.register(r'pdf/convert_to_base64images', PdfConvertToBase64ImagesViewSet, basename="pdf_convert_to_base64images")

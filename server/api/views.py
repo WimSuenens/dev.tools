@@ -13,7 +13,7 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.request import Request
 from rest_framework.response import Response
 from api.serializers import PeppolUploadSerializer, PdfUploadSerializer, OCRMyPDFSerializer
-from api.utils import validate_peppol, transform_to_html
+from api.utils import validate_peppol_billing, validate_peppol_self_billing, transform_to_html
 import pdfkit
 import pdf2image
 import ocrmypdf
@@ -47,7 +47,67 @@ class PeppolValidateViewSet(ViewSet):
 
         file: InMemoryUploadedFile = serializer.validated_data['ubl']
 
-        response = validate_peppol(file)
+        response = validate_peppol_billing(file)
+        return Response(response, status=status.HTTP_200_OK)
+
+class PeppolValidateBillingViewSet(ViewSet):
+    """
+    A viewset to handle Peppol validate requests.
+    """
+    serializer_class = PeppolUploadSerializer
+
+    def list(self, request: Request):
+        """
+        List all Peppol validate requests.
+        """
+        username = request.user.username or "anonymous"
+        message = f"Hi {username}, welcome at the endpoint to validate Peppol BIS Billing UBL files."
+        print(f"STATIC_URL - {settings.STATIC_URL}")
+        print(f"STATIC_ROOT - {settings.STATIC_ROOT}")
+        return Response(message, status=status.HTTP_200_OK)
+
+    def create(self, request: Request):
+        """
+        Validate a Peppol UBL file.
+        """
+        serializer = PeppolUploadSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        file: InMemoryUploadedFile = serializer.validated_data['ubl']
+
+        response = validate_peppol_billing(file)
+        return Response(response, status=status.HTTP_200_OK)
+
+class PeppolValidateSelfBillingViewSet(ViewSet):
+    """
+    A viewset to handle Peppol validate requests.
+    """
+    serializer_class = PeppolUploadSerializer
+
+    def list(self, request: Request):
+        """
+        List all Peppol validate requests.
+        """
+        username = request.user.username or "anonymous"
+        message = f"Hi {username}, welcome at the endpoint to validate Peppol BIS Self Billing UBL files."
+        print(f"STATIC_URL - {settings.STATIC_URL}")
+        print(f"STATIC_ROOT - {settings.STATIC_ROOT}")
+        return Response(message, status=status.HTTP_200_OK)
+
+    def create(self, request: Request):
+        """
+        Validate a Peppol BIS Self Billing UBL file.
+        """
+        serializer = PeppolUploadSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        file: InMemoryUploadedFile = serializer.validated_data['ubl']
+
+        response = validate_peppol_self_billing(file)
         return Response(response, status=status.HTTP_200_OK)
 
 class PeppolToHtmlViewSet(ViewSet):
@@ -130,7 +190,6 @@ class PdfConvertToImagesViewSet(ViewSet):
             # return Response({"hello": "world"})
         except Exception as e:
             return f"<html><body>Error converting to PDF</body></html>"
-
 
 class PdfConvertToBase64ImagesViewSet(ViewSet):
     """

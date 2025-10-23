@@ -1,28 +1,18 @@
 # Stage 1: Base build stage
-# FROM debian:bullseye-20250317-slim AS builder 
 FROM ubuntu:jammy-20250126 AS builder
-
-# RUN apt-get update --fix-missing \
-#     && apt-get install -y sudo
 
 RUN apt-get update --fix-missing \
     && apt-get install -y \ 
     wget \
-    # python3 \
     python3-pip \
-    # libpq-dev \
     ghostscript \
     ocrmypdf \
     poppler-utils
 
 # RUN arch=$(arch | sed s/aarch64/arm64/ | sed s/x86_64/amd64/) && \
-#     wget -O /tmp/wkhtmltox.deb "https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.bullseye_${arch}.deb"
+#     wget -O /tmp/wkhtmltox.deb "https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.jammy_${arch}.deb"
 
-RUN arch=$(arch | sed s/aarch64/arm64/ | sed s/x86_64/amd64/) && \
-    wget -O /tmp/wkhtmltox.deb "https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.jammy_${arch}.deb"
-
-# RUN apt-get update && apt install -y --no-install-recommends -f /tmp/wkhtmltox.deb
-RUN apt-get install -y -f /tmp/wkhtmltox.deb
+# RUN apt-get install -y -f /tmp/wkhtmltox.deb
 
 # Create the app directory
 RUN mkdir /app
