@@ -43,28 +43,32 @@ def read_xml_from_file(file: InMemoryUploadedFile) -> str:
     content: str = ''.join(chunk.decode('utf-8') for chunk in file.chunks())
     return content
 
-def validate_peppol(file: InMemoryUploadedFile):
+def validate_ub(proc: PySaxonProcessor, content: str, errors: list, flags: list):
+    stylesheet = 'CEN-EN16931-UBL'
+    stylesheet_file = os.path.join(settings.BASE_DIR, 'server/api/ubl/' + stylesheet + '.xsl')
+    (output_value, _) = process_by_saxon(proc, content, stylesheet_file)
+    for child in output_value.head.children:
+        failed_elements = (element for element in child.children if element.local_name == 'failed-assert')
+        for element in failed_elements:
+            info = {"stylesheet": stylesheet, "message": element.string_value}
+            for attribute in element.attributes:
+                info[attribute.local_name] = attribute.string_value
+            errors.append(info) if (info["flag"] == "fatal") else flags.append(info)
+
+def validate_peppol_billing(file: InMemoryUploadedFile):
     """
     Validate a Peppol UBL file.
     """
     content_type = file.content_type
     filename = secure_filename(file.name)
     errors = []
+    flags = []
     content: str = read_xml_from_file(file)
     with PySaxonProcessor(license=False) as proc:
-        stylesheet = 'CEN-EN16931-UBL.xsl'
-        stylesheet_file = os.path.join(settings.BASE_DIR, 'server/api/ubl/' + stylesheet)
-        (output_value, _) = process_by_saxon(proc, content, stylesheet_file)
-        for child in output_value.head.children:
-            failed_elements = (element for element in child.children if element.local_name == 'failed-assert')
-            for element in failed_elements:
-                info = {"stylesheet": stylesheet, "message": element.string_value}
-                for attribute in element.attributes:
-                    info[attribute.local_name] = attribute.string_value
-                errors.append(info)
+        validate_ub(proc, content, errors, flags)
 
-        stylesheet = 'PEPPOL-EN16931-UBL.xsl'
-        stylesheet_file = os.path.join(settings.BASE_DIR, 'server/api/ubl/' + stylesheet)
+        stylesheet = 'PEPPOL-EN16931-UBL'
+        stylesheet_file = os.path.join(settings.BASE_DIR, 'server/api/ubl/' + stylesheet + '.xsl')
         (output_value, _) = process_by_saxon(proc, content, stylesheet_file)
         for child in output_value.head.children:
             failed_elements = (element for element in child.children if element.local_name == 'failed-assert')
@@ -72,7 +76,7 @@ def validate_peppol(file: InMemoryUploadedFile):
                 info = {"stylesheet": stylesheet, "message": element.string_value}
                 for attribute in element.attributes:
                     info[attribute.local_name] = attribute.string_value
-                errors.append(info)
+                errors.append(info) if (info["flag"] == "fatal") else flags.append(info)
 
     # html = transform_to_html(content)
 
@@ -84,6 +88,45 @@ def validate_peppol(file: InMemoryUploadedFile):
         # "output": output,
         "valid": not errors,
         "errors": errors,
+        "flags": flags,
+        # "html": html,
+    })
+    return response
+
+def validate_peppol_self_billing(file: InMemoryUploadedFile):
+    """
+    Validate a Peppol UBL file.
+    """
+    content_type = file.content_type
+    filename = secure_filename(file.name)
+    errors = []
+    flags = []
+    content: str = read_xml_from_file(file)
+    with PySaxonProcessor(license=False) as proc:
+        validate_ub(proc, content, errors, flags)
+
+        stylesheet = 'PEPPOL-EN16931-UBL-SB'
+        stylesheet_file = os.path.join(settings.BASE_DIR, 'server/api/ubl/' + stylesheet + '.xsl')
+        (output_value, _) = process_by_saxon(proc, content, stylesheet_file)
+        for child in output_value.head.children:
+            failed_elements = (element for element in child.children if element.local_name == 'failed-assert')
+            for element in failed_elements:
+                info = {"stylesheet": stylesheet, "message": element.string_value}
+                for attribute in element.attributes:
+                    info[attribute.local_name] = attribute.string_value
+                errors.append(info) if (info["flag"] == "fatal") else flags.append(info)
+
+    # html = transform_to_html(content)
+
+    response = ({
+        "version": proc.version,
+        "filename": filename,
+        "content_type": content_type,
+        # "content": content,
+        # "output": output,
+        "valid": not errors,
+        "errors": errors,
+        "flags": flags,
         # "html": html,
     })
     return response

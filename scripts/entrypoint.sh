@@ -8,4 +8,6 @@ python3 /app/server/manage.py migrate --noinput
 
 # Start Gunicorn
 cd /app/server
-gunicorn application.wsgi:application --bind 0.0.0.0:8000 --workers 3
+
+# https://pythonspeed.com/articles/gunicorn-in-docker/
+gunicorn --worker-tmp-dir /dev/shm  --workers 2 --threads=4 --worker-class=gthread application.wsgi:application --bind 0.0.0.0:8000

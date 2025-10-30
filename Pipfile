@@ -5,17 +5,20 @@ name = "pypi"
 
 [packages]
 django = "*"
-saxonche = "*"
 djangorestframework = "*"
-markdown = "*"
-django-filter = "*"
 drf-spectacular = "*"
 werkzeug = "*"
 python-dotenv = "*"
-psycopg2 = "*"
+saxonche = "*"
+django-filter = "*"
 pdfkit = "*"
+markdown = "*"
+pdf2image = "*"
+ocrmypdf = "*"
+psycopg2-binary = "*"
+django-tailwind = {extras = ["reload"], version = "*"}
 
 [dev-packages]
 
 [requires]
-python_version = "3.11"
+python_version = "3.10"

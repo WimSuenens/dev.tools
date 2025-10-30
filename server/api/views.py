@@ -1,22 +1,30 @@
 """Some Test"""
 
+import io
+import base64
+import zipfile
+from pathlib import Path
 from base64 import b64encode
 from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.http import HttpResponse, FileResponse
 from rest_framework import status
 from rest_framework.viewsets import ViewSet
 from rest_framework.request import Request
 from rest_framework.response import Response
-from api.serializers import PeppolValidateSerializer
-from api.utils import validate_peppol, transform_to_html
+from api.serializers import PeppolUploadSerializer, PdfUploadSerializer, OCRMyPDFSerializer
+from api.utils import validate_peppol_billing, validate_peppol_self_billing, transform_to_html
 import pdfkit
+import pdf2image
+import ocrmypdf
+from werkzeug.utils import secure_filename
 
 # ViewSets define the view behavior.
 class PeppolValidateViewSet(ViewSet):
     """
     A viewset to handle Peppol validate requests.
     """
-    serializer_class = PeppolValidateSerializer
+    serializer_class = PeppolUploadSerializer
 
     def list(self, request: Request):
         """
@@ -32,21 +40,81 @@ class PeppolValidateViewSet(ViewSet):
         """
         Validate a Peppol UBL file.
         """
-        serializer = PeppolValidateSerializer(data=request.data)
+        serializer = PeppolUploadSerializer(data=request.data)
 
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         file: InMemoryUploadedFile = serializer.validated_data['ubl']
 
-        response = validate_peppol(file)
+        response = validate_peppol_billing(file)
+        return Response(response, status=status.HTTP_200_OK)
+
+class PeppolValidateBillingViewSet(ViewSet):
+    """
+    A viewset to handle Peppol validate requests.
+    """
+    serializer_class = PeppolUploadSerializer
+
+    def list(self, request: Request):
+        """
+        List all Peppol validate requests.
+        """
+        username = request.user.username or "anonymous"
+        message = f"Hi {username}, welcome at the endpoint to validate Peppol BIS Billing UBL files."
+        print(f"STATIC_URL - {settings.STATIC_URL}")
+        print(f"STATIC_ROOT - {settings.STATIC_ROOT}")
+        return Response(message, status=status.HTTP_200_OK)
+
+    def create(self, request: Request):
+        """
+        Validate a Peppol UBL file.
+        """
+        serializer = PeppolUploadSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        file: InMemoryUploadedFile = serializer.validated_data['ubl']
+
+        response = validate_peppol_billing(file)
+        return Response(response, status=status.HTTP_200_OK)
+
+class PeppolValidateSelfBillingViewSet(ViewSet):
+    """
+    A viewset to handle Peppol validate requests.
+    """
+    serializer_class = PeppolUploadSerializer
+
+    def list(self, request: Request):
+        """
+        List all Peppol validate requests.
+        """
+        username = request.user.username or "anonymous"
+        message = f"Hi {username}, welcome at the endpoint to validate Peppol BIS Self Billing UBL files."
+        print(f"STATIC_URL - {settings.STATIC_URL}")
+        print(f"STATIC_ROOT - {settings.STATIC_ROOT}")
+        return Response(message, status=status.HTTP_200_OK)
+
+    def create(self, request: Request):
+        """
+        Validate a Peppol BIS Self Billing UBL file.
+        """
+        serializer = PeppolUploadSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        file: InMemoryUploadedFile = serializer.validated_data['ubl']
+
+        response = validate_peppol_self_billing(file)
         return Response(response, status=status.HTTP_200_OK)
 
 class PeppolToHtmlViewSet(ViewSet):
     """
     A viewset to handle Peppol to Html requests.
     """
-    serializer_class = PeppolValidateSerializer
+    serializer_class = PeppolUploadSerializer
 
     def list(self, request: Request):
         """
@@ -61,7 +129,7 @@ class PeppolToHtmlViewSet(ViewSet):
         Validate a Peppol UBL file.
         """
         try:
-            serializer = PeppolValidateSerializer(data=request.data)
+            serializer = PeppolUploadSerializer(data=request.data)
 
             if not serializer.is_valid():
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -77,3 +145,172 @@ class PeppolToHtmlViewSet(ViewSet):
             return f"<html><body>Error transforming to HTML</body></html>"
 
         # return Response(response, status=status.HTTP_200_OK)
+
+class PdfConvertToImagesViewSet(ViewSet):
+    """
+    A viewset to handle Pdf to Images (zip) requests.
+    """
+    serializer_class = PdfUploadSerializer
+
+    def list(self, request: Request):
+        """
+        """
+        username = request.user.username or "anonymous"
+        message = f"Hi {username}, welcome at the endpoint to convert a PDF file."
+        return Response(message, status=status.HTTP_200_OK)
+
+    def create(self, request: Request):
+        """
+        Convert PDF to images and return ZIP archive.
+        """
+        try:
+            serializer = PdfUploadSerializer(data=request.data)
+
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            pdf: InMemoryUploadedFile = serializer.validated_data['pdf']
+            file = secure_filename(pdf.name)
+            filename = Path(file).stem
+
+            zip_buffer = io.BytesIO()
+            with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                pages = pdf2image.convert_from_bytes(pdf.read(), fmt='jpeg')
+                for index, page in enumerate(pages):
+                    img_buffer = io.BytesIO()
+                    page.save(img_buffer, format='JPEG')
+                    img_buffer.seek(0) 
+                    zip_file.writestr(f"{filename}_{index}.jpg", img_buffer.getvalue())
+
+            zip_buffer.seek(0)
+            response = HttpResponse(zip_buffer.getvalue(), content_type='application/zip')
+            response['Content-Disposition'] = f'attachment; filename="{filename}.zip"'
+            
+            return response
+            # return Response({"hello": "world"})
+        except Exception as e:
+            return f"<html><body>Error converting to PDF</body></html>"
+
+class PdfConvertToBase64ImagesViewSet(ViewSet):
+    """
+    A viewset to handle Peppol to Pdf requests.
+    """
+    serializer_class = PdfUploadSerializer
+
+    def list(self, request: Request):
+        """
+        List all Peppol validate requests.
+        """
+        username = request.user.username or "anonymous"
+        message = f"Hi {username}, welcome at the endpoint to convert a PDF file."
+        return Response(message, status=status.HTTP_200_OK)
+
+    def create(self, request: Request):
+        """
+        Convert PDF to images and base64 array.
+        """
+        try:
+            serializer = PdfUploadSerializer(data=request.data)
+
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            pdf: InMemoryUploadedFile = serializer.validated_data['pdf']
+
+            encoded_list = []
+
+            pages = pdf2image.convert_from_bytes(pdf.read(), fmt='jpeg')
+            for index, page in enumerate(pages):
+                img_buffer = io.BytesIO()
+                page.save(img_buffer, format='JPEG')
+                img_buffer.seek(0)
+                encoded_string = base64.b64encode(img_buffer.read()).decode("ascii")
+                encoded_list.append(encoded_string)
+            return Response(encoded_list, status=status.HTTP_200_OK)
+        except Exception as e:
+            return f"<html><body>Error converting to PDF</body></html>"
+
+class OcrMyPdfViewSet(ViewSet):
+    """
+    A viewset to OCR a PDF file.
+    """
+    serializer_class = OCRMyPDFSerializer
+
+    def list(self, request: Request):
+        """
+        """
+        username = request.user.username or "anonymous"
+        message = f"Hi {username}, welcome at the endpoint to OCR a PDF."
+        return Response(message, status=status.HTTP_200_OK)
+
+    def create(self, request: Request):
+        """
+        """
+        try:
+            serializer = OCRMyPDFSerializer(data=request.data)
+
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            pdf: InMemoryUploadedFile = serializer.validated_data['pdf']
+            content_type = pdf.content_type
+            as_attachment = serializer.validated_data['as_attachment']
+            filename = secure_filename(pdf.name)
+
+            pdf_data = pdf.read()
+            input_buffer = io.BytesIO(pdf_data)
+            output_buffer = io.BytesIO()
+
+            ocrmypdf.ocr(
+                input_buffer,
+                output_buffer,
+                clean=True,
+                deskew=True,
+                rotate_pages=True,
+                image_dpi=300,
+                output_type="pdfa",
+                sidecar="-",
+                skip_text=True,
+                invalidate_digital_signatures=True
+            )
+            output_buffer.seek(0)
+            return FileResponse(
+                output_buffer,
+                as_attachment=as_attachment,
+                filename=filename,
+                content_type=content_type
+            )
+            # response = HttpResponse(output_buffer, content_type='application/pdf')
+            # response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            # return response
+        except Exception as e:
+            return Response(f"<html><body>Error converting to PDF : {e}</body></html>", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class PdfExtractTextViewSet(ViewSet):
+    """
+    A viewset to OCR a PDF file.
+    """
+    serializer_class = PdfUploadSerializer
+
+    def list(self, request: Request):
+        """
+        """
+        username = request.user.username or "anonymous"
+        message = f"Hi {username}, welcome at the endpoint to OCR a PDF."
+        return Response(message, status=status.HTTP_200_OK)
+
+    def create(self, request: Request):
+        """
+        """
+    
+        try:
+            serializer = PdfUploadSerializer(data=request.data)
+
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            pdf: InMemoryUploadedFile = serializer.validated_data['pdf']
+
+            return Response("encoded_list", status=status.HTTP_200_OK)
+        except Exception as e:
+            return f"<html><body>Error converting to PDF</body></html>"
