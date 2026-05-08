@@ -12,12 +12,66 @@ from rest_framework import status
 from rest_framework.viewsets import ViewSet
 from rest_framework.request import Request
 from rest_framework.response import Response
-from api.serializers import PeppolUploadSerializer, PdfUploadSerializer, OCRMyPDFSerializer
-from api.utils import validate_peppol_billing, validate_peppol_self_billing, transform_to_html
+from api.serializers import AS4DocumentUploadSerializer, PeppolUploadSerializer, PdfUploadSerializer, OCRMyPDFSerializer
+from api.utils import validate_en16931_ubl ,validate_peppol_billing, validate_peppol_self_billing, validate_peppol_si_ubl, validate_peppol_nlcius_cii, validate_en16931_extended_ctc_fr_ubl, transform_to_html, validate_en16931_cii, validate_en16931_extended_ctc_fr_cii
 import pdfkit
 import pdf2image
 import ocrmypdf
 from werkzeug.utils import secure_filename
+
+class AS4DocumentValidateViewSet(ViewSet):
+    """
+    A viewset to handle Peppol validate requests.
+    """
+    serializer_class = AS4DocumentUploadSerializer
+
+
+    def list(self, request: Request):
+        """
+        List all Peppol validate requests.
+        """
+        username = request.user.username or "anonymous"
+        message = f"Hi {username}, welcome at the endpoint to validate Peppol UBL files."
+        print(f"STATIC_URL - {settings.STATIC_URL}")
+        print(f"STATIC_ROOT - {settings.STATIC_ROOT}")
+        return Response(message, status=status.HTTP_200_OK)
+
+    def create(self, request: Request):
+        """
+        Validate a Peppol UBL file.
+        """
+        serializer = AS4DocumentUploadSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        file: InMemoryUploadedFile = serializer.validated_data['document']
+        variant: str = serializer.validated_data['variant']
+
+        print(f"VARIANT - {variant}")
+
+        match variant:
+            case "PEPPOL_BIS_BILLING_V3_UBL_INVOICE" | "PEPPOL_BIS_BILLING_V3_UBL_CREDIT_NOTE":
+                response = validate_peppol_billing(file)
+            case "PEPPOL_BIS_SELF_BILLING_V3_UBL_INVOICE" | "PEPPOL_BIS_SELF_BILLING_V3_UBL_CREDIT_NOTE":
+                response = validate_peppol_self_billing(file)
+            case "SI_UBL_V2_0":
+                response = validate_peppol_si_ubl(file)
+            case "EN16931_UBL":
+                response = validate_en16931_ubl(file)
+            case "EN16931_UBL_EXTENDED_CTC_FR":
+                response = validate_en16931_extended_ctc_fr_ubl(file)
+            case "EN16931_CII":
+                response = validate_en16931_cii(file)
+            case "EN16931_CII_EXTENDED_CTC_FR":
+                response = validate_en16931_extended_ctc_fr_cii(file)
+            case _:
+                return Response(
+                    {"error": f"Unsupported variant - {variant}"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        return Response(response, status=status.HTTP_200_OK)
+    
 
 # ViewSets define the view behavior.
 class PeppolValidateViewSet(ViewSet):

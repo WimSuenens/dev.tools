@@ -4,6 +4,17 @@ volumes:
   # pgadmin_data:
 
 services:
+  # nginx:
+  #   container_name: python-dev-tools-nginx
+  #   image: nginx:1-alpine
+  #   ports:
+  #     - 8089:80
+  #   env_file:
+  #     - ../.env
+  #   volumes:
+  #     - ../nginx/10-variables.conf.template:/etc/nginx/templates/10-variables.conf.template:ro
+  #     - ../nginx/nginx.conf:/etc/nginx/sites-available/default/nginx.conf
+
   application:
     container_name: python-dev-tools
     # https://github.com/devcontainers/images/blob/main/src/python/README.md

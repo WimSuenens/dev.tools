@@ -56,7 +56,7 @@
     
     // "postStartCommand": "whoami"
     // "postStartCommand": "whoami && pipx install pipenv && pipx ensurepath && source ~/.bashrc && pipenv install"
-    "postStartCommand": "pipenv install"
+    "postStartCommand": "pipenv --python /usr/bin/python3 install"
     
     // "postStartCommand": "python3 -m venv .venv",
     // "postStartCommand": "pipenv shell",

@@ -6,7 +6,7 @@ API Serializers
 # from rest_framework.serializers import HyperlinkedModelSerializer, Serializer, FileField
 import os
 from django.forms import ValidationError
-from rest_framework.serializers import Serializer, FileField, BooleanField, CharField
+from rest_framework.serializers import Serializer, FileField, BooleanField, CharField, ChoiceField
 
 # Serializers define the API representation.
 # class UserSerializer(HyperlinkedModelSerializer):
@@ -18,6 +18,25 @@ from rest_framework.serializers import Serializer, FileField, BooleanField, Char
 #     class Meta:
 #         model = Group
 #         fields = ['url', 'name']
+
+class AS4DocumentUploadSerializer(Serializer):
+    """
+    A serializer used for AS4 document validation
+    """
+    variant = ChoiceField(
+        choices=[
+            ("PEPPOL_BIS_BILLING_V3_UBL_INVOICE", "Peppol BIS Billing V3 - UBL 2.1 - Invoice"),
+            ("PEPPOL_BIS_BILLING_V3_UBL_CREDIT_NOTE", "Peppol BIS Billing V3 - UBL 2.1 - Credit Note"),
+            ("PEPPOL_BIS_SELF_BILLING_V3_UBL_INVOICE", "Peppol BIS Self-Billing V3 - UBL 2.1 - Invoice"),
+            ("PEPPOL_BIS_SELF_BILLING_V3_UBL_CREDIT_NOTE", "Peppol BIS Self-Billing V3 - UBL 2.1 - Credit Note"),
+            ("SI_UBL_V2_0", "SimplerInvoicing UBL v2.0 - UBL 2.1 - NL CIUS v1.0.3"),
+            ("EN16931_UBL", "EN 16931 UBL - FR CIUS"),
+            ("EN16931_UBL_EXTENDED_CTC_FR", "EN 16931 UBL - FR CIUS Extended"),
+            ("EN16931_CII", "EN 16931 CII - FR CIUS"),
+            ("EN16931_CII_EXTENDED_CTC_FR", "EN 16931 CII - FR CIUS Extended"),
+        ]
+    )
+    document = FileField()
 
 class PeppolUploadSerializer(Serializer):
     """

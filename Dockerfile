@@ -3,6 +3,7 @@ FROM ubuntu:jammy-20250126 AS builder
 
 RUN apt-get update --fix-missing \
     && apt-get install -y \ 
+    # dos2unix \
     wget \
     python3-pip \
     ghostscript \
@@ -55,6 +56,7 @@ RUN ln -sf /dev/stdout /var/log/nginx/access.log && \
 
 # Setup entrypoint
 COPY ./scripts/entrypoint.sh /entrypoint.sh
+# RUN dos2unix /entrypoint.sh && chmod +x /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 EXPOSE 80
