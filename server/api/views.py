@@ -46,14 +46,14 @@ class AS4DocumentValidateViewSet(ViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         file: InMemoryUploadedFile = serializer.validated_data['document']
-        variant: str = serializer.validated_data['variant']
+        profile: str = serializer.validated_data['profile']
 
-        print(f"VARIANT - {variant}")
+        print(f"PROFILE - {profile}")
 
-        match variant:
-            case "PEPPOL_BIS_BILLING_V3_UBL_INVOICE" | "PEPPOL_BIS_BILLING_V3_UBL_CREDIT_NOTE":
+        match profile:
+            case "PEPPOL_BIS_BILLING_V3" | "PEPPOL_BIS_BILLING_V3_UBL_INVOICE" | "PEPPOL_BIS_BILLING_V3_UBL_CREDIT_NOTE":
                 response = validate_peppol_billing(file)
-            case "PEPPOL_BIS_SELF_BILLING_V3_UBL_INVOICE" | "PEPPOL_BIS_SELF_BILLING_V3_UBL_CREDIT_NOTE":
+            case "PEPPOL_BIS_SELF_BILLING_V3" | "PEPPOL_BIS_SELF_BILLING_V3_UBL_INVOICE" | "PEPPOL_BIS_SELF_BILLING_V3_UBL_CREDIT_NOTE":
                 response = validate_peppol_self_billing(file)
             case "SI_UBL_V2_0":
                 response = validate_peppol_si_ubl(file)
@@ -67,7 +67,7 @@ class AS4DocumentValidateViewSet(ViewSet):
                 response = validate_en16931_extended_ctc_fr_cii(file)
             case _:
                 return Response(
-                    {"error": f"Unsupported variant - {variant}"},
+                    {"error": f"Unsupported variant - {profile}"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
         return Response(response, status=status.HTTP_200_OK)

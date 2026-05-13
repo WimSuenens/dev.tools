@@ -23,12 +23,10 @@ class AS4DocumentUploadSerializer(Serializer):
     """
     A serializer used for AS4 document validation
     """
-    variant = ChoiceField(
+    profile = ChoiceField(
         choices=[
-            ("PEPPOL_BIS_BILLING_V3_UBL_INVOICE", "Peppol BIS Billing V3 - UBL 2.1 - Invoice"),
-            ("PEPPOL_BIS_BILLING_V3_UBL_CREDIT_NOTE", "Peppol BIS Billing V3 - UBL 2.1 - Credit Note"),
-            ("PEPPOL_BIS_SELF_BILLING_V3_UBL_INVOICE", "Peppol BIS Self-Billing V3 - UBL 2.1 - Invoice"),
-            ("PEPPOL_BIS_SELF_BILLING_V3_UBL_CREDIT_NOTE", "Peppol BIS Self-Billing V3 - UBL 2.1 - Credit Note"),
+            ("PEPPOL_BIS_BILLING_V3", "Peppol BIS Billing V3 - UBL 2.1"),
+            ("PEPPOL_BIS_SELF_BILLING_V3", "Peppol BIS Self-Billing V3 - UBL 2.1"),
             ("SI_UBL_V2_0", "SimplerInvoicing UBL v2.0 - UBL 2.1 - NL CIUS v1.0.3"),
             ("EN16931_UBL", "EN 16931 UBL - FR CIUS"),
             ("EN16931_UBL_EXTENDED_CTC_FR", "EN 16931 UBL - FR CIUS Extended"),
