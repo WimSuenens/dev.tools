@@ -3,6 +3,7 @@
 import io
 import base64
 import zipfile
+import os
 from pathlib import Path
 from base64 import b64encode
 from django.conf import settings
@@ -13,7 +14,7 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.request import Request
 from rest_framework.response import Response
 from api.serializers import AS4DocumentUploadSerializer, PeppolUploadSerializer, PdfUploadSerializer, OCRMyPDFSerializer
-from api.utils import validate_en16931_ubl ,validate_peppol_billing, validate_peppol_self_billing, validate_peppol_si_ubl, validate_peppol_nlcius_cii, validate_en16931_extended_ctc_fr_ubl, transform_to_html, validate_en16931_cii, validate_en16931_extended_ctc_fr_cii
+from api.utils import transform_to_html, validate
 import pdfkit
 import pdf2image
 import ocrmypdf
@@ -52,19 +53,45 @@ class AS4DocumentValidateViewSet(ViewSet):
 
         match profile:
             case "PEPPOL_BIS_BILLING_V3" | "PEPPOL_BIS_BILLING_V3_UBL_INVOICE" | "PEPPOL_BIS_BILLING_V3_UBL_CREDIT_NOTE":
-                response = validate_peppol_billing(file)
+                stylesheet_files: list[str] = [
+                    os.path.join(settings.BASE_DIR, 'server/api/ubl/CEN-EN16931-UBL.xsl'),
+                    os.path.join(settings.BASE_DIR, 'server/api/ubl/PEPPOL-EN16931-UBL.xsl'),
+                ]
+                response = validate(stylesheet_files, file)
             case "PEPPOL_BIS_SELF_BILLING_V3" | "PEPPOL_BIS_SELF_BILLING_V3_UBL_INVOICE" | "PEPPOL_BIS_SELF_BILLING_V3_UBL_CREDIT_NOTE":
-                response = validate_peppol_self_billing(file)
+                stylesheet_files: list[str] = [
+                    os.path.join(settings.BASE_DIR, 'server/api/ubl/CEN-EN16931-UBL.xsl'),
+                    os.path.join(settings.BASE_DIR, 'server/api/ubl/PEPPOL-EN16931-UBL-SB.xsl'),
+                ]
+                response = validate(stylesheet_files, file)
             case "SI_UBL_V2_0":
-                response = validate_peppol_si_ubl(file)
+                stylesheet_files: list[str] = [
+                    os.path.join(settings.BASE_DIR, 'server/api/ubl/CEN-EN16931-UBL.xsl'),
+                    os.path.join(settings.BASE_DIR, 'server/api/ubl/SI-UBL-2_0.xsl'),
+                ]
+                response = validate(stylesheet_files, file)
             case "EN16931_UBL":
-                response = validate_en16931_ubl(file)
+                stylesheet_files: list[str] = [
+                    os.path.join(settings.BASE_DIR, 'server/api/ubl/CEN-EN16931-UBL.xsl'),
+                ]
+                response = validate(stylesheet_files, file)
             case "EN16931_UBL_EXTENDED_CTC_FR":
-                response = validate_en16931_extended_ctc_fr_ubl(file)
+                stylesheet_files: list[str] = [
+                    os.path.join(settings.BASE_DIR, 'server/api/ubl/20260430_BR-FR-Flux2-Schematron-UBL_V1.3.1.xsl'),
+                ]
+                response = validate(stylesheet_files, file)
             case "EN16931_CII":
-                response = validate_en16931_cii(file)
+                stylesheet_files: list[str] = [
+                    os.path.join(settings.BASE_DIR, 'server/api/cii/EN16931-CII-validation.xslt'),
+                    os.path.join(settings.BASE_DIR, 'server/api/cii/20260430_BR-FR-Flux2-Schematron-CII_V1.3.1.xsl')
+                ]
+                response = validate(stylesheet_files, file)
             case "EN16931_CII_EXTENDED_CTC_FR":
-                response = validate_en16931_extended_ctc_fr_cii(file)
+                stylesheet_files: list[str] = [
+                    os.path.join(settings.BASE_DIR, 'server/api/cii/EN16931-CII-validation.xslt'),
+                    os.path.join(settings.BASE_DIR, 'server/api/cii/20260430_BR-FR-Flux2-Schematron-CII_V1.3.1.xsl')
+                ]
+                response = validate(stylesheet_files, file)
             case _:
                 return Response(
                     {"error": f"Unsupported variant - {profile}"},
@@ -101,7 +128,11 @@ class PeppolValidateViewSet(ViewSet):
 
         file: InMemoryUploadedFile = serializer.validated_data['ubl']
 
-        response = validate_peppol_billing(file)
+        stylesheet_files: list[str] = [
+            os.path.join(settings.BASE_DIR, 'server/api/ubl/CEN-EN16931-UBL.xsl'),
+            os.path.join(settings.BASE_DIR, 'server/api/ubl/PEPPOL-EN16931-UBL.xsl'),
+        ]
+        response = validate(stylesheet_files, file)
         return Response(response, status=status.HTTP_200_OK)
 
 class PeppolValidateBillingViewSet(ViewSet):
@@ -131,7 +162,11 @@ class PeppolValidateBillingViewSet(ViewSet):
 
         file: InMemoryUploadedFile = serializer.validated_data['ubl']
 
-        response = validate_peppol_billing(file)
+        stylesheet_files: list[str] = [
+            os.path.join(settings.BASE_DIR, 'server/api/ubl/CEN-EN16931-UBL.xsl'),
+            os.path.join(settings.BASE_DIR, 'server/api/ubl/PEPPOL-EN16931-UBL.xsl'),
+        ]
+        response = validate(stylesheet_files, file)
         return Response(response, status=status.HTTP_200_OK)
 
 class PeppolValidateSelfBillingViewSet(ViewSet):
@@ -161,7 +196,11 @@ class PeppolValidateSelfBillingViewSet(ViewSet):
 
         file: InMemoryUploadedFile = serializer.validated_data['ubl']
 
-        response = validate_peppol_self_billing(file)
+        stylesheet_files: list[str] = [
+            os.path.join(settings.BASE_DIR, 'server/api/ubl/CEN-EN16931-UBL.xsl'),
+            os.path.join(settings.BASE_DIR, 'server/api/ubl/PEPPOL-EN16931-UBL-SB.xsl'),
+        ]
+        response = validate(stylesheet_files, file)
         return Response(response, status=status.HTTP_200_OK)
 
 class PeppolToHtmlViewSet(ViewSet):

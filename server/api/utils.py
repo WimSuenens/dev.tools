@@ -61,242 +61,7 @@ def read_xml_from_file(file: InMemoryUploadedFile) -> str:
     # content: str = ''.join(chunk.decode('utf-8') for chunk in file.chunks())
     # return content
 
-def validate_ubl(proc: PySaxonProcessor, content: str, errors: list, flags: list):
-    stylesheet = 'CEN-EN16931-UBL'
-    stylesheet_file = os.path.join(settings.BASE_DIR, 'server/api/ubl/' + stylesheet + '.xsl')
-    (output_value, _) = process_by_saxon(proc, content, stylesheet_file)
-    for child in output_value.head.children:
-        failed_elements = (element for element in child.children if element.local_name == 'failed-assert')
-        for element in failed_elements:
-            info = {"stylesheet": stylesheet, "message": element.string_value}
-            for attribute in element.attributes:
-                info[attribute.local_name] = attribute.string_value
-            errors.append(info) if (info["flag"] == "fatal") else flags.append(info)
-
-def validate_en16931_ubl(file: InMemoryUploadedFile):
-    """
-    Validate a EN 16931 UBL file.
-    """
-    content_type = file.content_type
-    filename = secure_filename(file.name)
-    errors = []
-    flags = []
-    content: str = read_xml_from_file(file)
-    with PySaxonProcessor(license=False) as proc:
-        validate_ubl(proc, content, errors, flags)
-
-    response = ({
-        "version": proc.version,
-        "filename": filename,
-        "content_type": content_type,
-        "valid": not errors,
-        "errors": errors,
-        "flags": flags,
-    })
-    return response
-
-def validate_peppol_billing(file: InMemoryUploadedFile):
-    """
-    Validate a Peppol UBL file.
-    """
-    content_type = file.content_type
-    filename = secure_filename(file.name)
-    errors = []
-    flags = []
-    content: str = read_xml_from_file(file)
-    with PySaxonProcessor(license=False) as proc:
-        validate_ubl(proc, content, errors, flags)
-
-        stylesheet = 'PEPPOL-EN16931-UBL'
-        stylesheet_file = os.path.join(settings.BASE_DIR, 'server/api/ubl/' + stylesheet + '.xsl')
-        (output_value, _) = process_by_saxon(proc, content, stylesheet_file)
-        for child in output_value.head.children:
-            failed_elements = (element for element in child.children if element.local_name == 'failed-assert')
-            for element in failed_elements:
-                info = {"stylesheet": stylesheet, "message": element.string_value}
-                for attribute in element.attributes:
-                    info[attribute.local_name] = attribute.string_value
-                errors.append(info) if (info["flag"] == "fatal") else flags.append(info)
-
-    # html = transform_to_html(content)
-
-    response = ({
-        "version": proc.version,
-        "filename": filename,
-        "content_type": content_type,
-        # "content": content,
-        # "output": output,
-        "valid": not errors,
-        "errors": errors,
-        "flags": flags,
-        # "html": html,
-    })
-    return response
-
-def validate_peppol_self_billing(file: InMemoryUploadedFile):
-    """
-    Validate a Peppol UBL file.
-    """
-    content_type = file.content_type
-    filename = secure_filename(file.name)
-    errors = []
-    flags = []
-    content: str = read_xml_from_file(file)
-    with PySaxonProcessor(license=False) as proc:
-        validate_ubl(proc, content, errors, flags)
-
-        stylesheet = 'PEPPOL-EN16931-UBL-SB'
-        stylesheet_file = os.path.join(settings.BASE_DIR, 'server/api/ubl/' + stylesheet + '.xsl')
-        (output_value, _) = process_by_saxon(proc, content, stylesheet_file)
-        for child in output_value.head.children:
-            failed_elements = (element for element in child.children if element.local_name == 'failed-assert')
-            for element in failed_elements:
-                info = {"stylesheet": stylesheet, "message": element.string_value}
-                for attribute in element.attributes:
-                    info[attribute.local_name] = attribute.string_value
-                errors.append(info) if (info["flag"] == "fatal") else flags.append(info)
-
-    # html = transform_to_html(content)
-
-    response = ({
-        "version": proc.version,
-        "filename": filename,
-        "content_type": content_type,
-        # "content": content,
-        # "output": output,
-        "valid": not errors,
-        "errors": errors,
-        "flags": flags,
-        # "html": html,
-    })
-    return response
-
-def validate_peppol_si_ubl(file: InMemoryUploadedFile):
-    """
-    Validate a Peppol UBL file.
-    """
-    content_type = file.content_type
-    filename = secure_filename(file.name)
-    errors = []
-    flags = []
-    content: str = read_xml_from_file(file)
-    with PySaxonProcessor(license=False) as proc:
-        validate_ubl(proc, content, errors, flags)
-
-        stylesheet = 'SI-UBL-2_0'
-        stylesheet_file = os.path.join(settings.BASE_DIR, 'server/api/ubl/' + stylesheet + '.xsl')
-        (output_value, _) = process_by_saxon(proc, content, stylesheet_file)
-        for child in output_value.head.children:
-            failed_elements = (element for element in child.children if element.local_name == 'failed-assert')
-            for element in failed_elements:
-                info = {"stylesheet": stylesheet, "message": element.string_value}
-                for attribute in element.attributes:
-                    info[attribute.local_name] = attribute.string_value
-                errors.append(info) if (info["flag"] == "fatal") else flags.append(info)
-
-    response = ({
-        "version": proc.version,
-        "filename": filename,
-        "content_type": content_type,
-        "valid": not errors,
-        "errors": errors,
-        "flags": flags,
-    })
-    return response
-
-def validate_peppol_nlcius_cii(file: InMemoryUploadedFile):
-    """
-    Validate a Peppol UBL file.
-    """
-    content_type = file.content_type
-    filename = secure_filename(file.name)
-    errors = []
-    flags = []
-    content: str = read_xml_from_file(file)
-    with PySaxonProcessor(license=False) as proc:
-        # validate_ubl(proc, content, errors, flags)
-
-        stylesheet = 'NLCIUS-CII-1_0'
-        stylesheet_file = os.path.join(settings.BASE_DIR, 'server/api/cii/' + stylesheet + '.xsl')
-        (output_value, _) = process_by_saxon(proc, content, stylesheet_file)
-        for child in output_value.head.children:
-            failed_elements = (element for element in child.children if element.local_name == 'failed-assert')
-            for element in failed_elements:
-                info = {"stylesheet": stylesheet, "message": element.string_value}
-                for attribute in element.attributes:
-                    info[attribute.local_name] = attribute.string_value
-                errors.append(info) if (info["flag"] == "fatal") else flags.append(info)
-
-    response = ({
-        "version": proc.version,
-        "filename": filename,
-        "content_type": content_type,
-        "valid": not errors,
-        "errors": errors,
-        "flags": flags,
-    })
-    return response
-
-def validate_en16931_extended_ctc_fr_ubl(file: InMemoryUploadedFile):
-    """
-    Validate a EN 16931 - EXTENDED CTC FR - UBL file.
-    """
-    content_type = file.content_type
-    filename = secure_filename(file.name)
-    errors = []
-    flags = []
-    content: str = read_xml_from_file(file)
-    with PySaxonProcessor(license=False) as proc:
-        # validate_ubl(proc, content, errors, flags)
-
-        stylesheet = '20260430_BR-FR-Flux2-Schematron-UBL_V1.3.1'
-        stylesheet_file = os.path.join(settings.BASE_DIR, 'server/api/ubl/' + stylesheet + '.xsl')
-        (output_value, _) = process_by_saxon(proc, content, stylesheet_file)
-        for child in output_value.head.children:
-            failed_elements = (element for element in child.children if element.local_name == 'failed-assert')
-            for element in failed_elements:
-                info = {"stylesheet": stylesheet, "message": element.string_value}
-                for attribute in element.attributes:
-                    info[attribute.local_name] = attribute.string_value
-                errors.append(info) if (info["flag"] == "fatal") else flags.append(info)
-
-    response = ({
-        "version": proc.version,
-        "filename": filename,
-        "content_type": content_type,
-        "valid": not errors,
-        "errors": errors,
-        "flags": flags,
-    })
-    return response
-
-def validate_cii(proc: PySaxonProcessor, content: str, errors: list, flags: list):
-    stylesheet = 'EN16931-CII-validation'
-    stylesheet_file = os.path.join(settings.BASE_DIR, 'server/api/cii/' + stylesheet + '.xslt')
-    (output_value, _) = process_by_saxon(proc, content, stylesheet_file)
-    for child in output_value.head.children:
-        failed_elements = (element for element in child.children if element.local_name == 'failed-assert')
-        for element in failed_elements:
-            info = {"stylesheet": stylesheet, "message": element.string_value}
-            for attribute in element.attributes:
-                info[attribute.local_name] = attribute.string_value
-            errors.append(info) if (info["flag"] == "fatal") else flags.append(info)
-
-def validate(stylesheet_file: str, proc: PySaxonProcessor, content: str, errors: list, flags: list):
-    # stylesheet = 'EN16931-CII-validation'
-    # stylesheet_file = os.path.join(settings.BASE_DIR, 'server/api/cii/' + stylesheet + '.xslt')
-    # stylesheet = os.path.basename(stylesheet_file)
-    stylesheet = Path(stylesheet_file).stem
-    (output_value, _) = process_by_saxon(proc, content, stylesheet_file)
-    for child in output_value.head.children:
-        failed_elements = (element for element in child.children if element.local_name == 'failed-assert')
-        for element in failed_elements:
-            info = {"stylesheet": stylesheet, "message": element.string_value}
-            for attribute in element.attributes:
-                info[attribute.local_name] = attribute.string_value
-            errors.append(info) if (info["flag"] == "fatal") else flags.append(info)
-
-def validate_en16931_cii(file: InMemoryUploadedFile):
+def validate(stylesheet_files: list[str], file: InMemoryUploadedFile):
     """
     Validate a EN 16931 CII file.
     """
@@ -304,51 +69,26 @@ def validate_en16931_cii(file: InMemoryUploadedFile):
     filename = secure_filename(file.name)
     errors = []
     flags = []
+    xlst = []
     content: str = read_xml_from_file(file)
     with PySaxonProcessor(license=False) as proc:
-        # stylesheet = 'EN16931-CII-validation'
-        stylesheet_file = os.path.join(settings.BASE_DIR, 'server/api/cii/EN16931-CII-validation.xslt')
-        validate(stylesheet_file, proc, content, errors, flags)
-        stylesheet_file = os.path.join(settings.BASE_DIR, 'server/api/cii/20260430_BR-FR-Flux2-Schematron-CII_V1.3.1.xsl')
-        validate(stylesheet_file, proc, content, errors, flags)
+        for stylesheet_file in stylesheet_files:
+            stylesheet = Path(stylesheet_file).stem
+            xlst.append(stylesheet)
+            (output_value, _) = process_by_saxon(proc, content, stylesheet_file)
+            for child in output_value.head.children:
+                failed_elements = (element for element in child.children if element.local_name == 'failed-assert')
+                for element in failed_elements:
+                    info = {"stylesheet": stylesheet, "message": element.string_value}
+                    for attribute in element.attributes:
+                        info[attribute.local_name] = attribute.string_value
+                    errors.append(info) if (info["flag"] == "fatal") else flags.append(info)
 
     response = ({
         "version": proc.version,
         "filename": filename,
         "content_type": content_type,
-        "valid": not errors,
-        "errors": errors,
-        "flags": flags,
-    })
-    return response
-
-def validate_en16931_extended_ctc_fr_cii(file: InMemoryUploadedFile):
-    """
-    Validate a EN 16931 - EXTENDED CTC FR - UBL file.
-    """
-    content_type = file.content_type
-    filename = secure_filename(file.name)
-    errors = []
-    flags = []
-    content: str = read_xml_from_file(file)
-    with PySaxonProcessor(license=False) as proc:
-        # validate_cii(proc, content, errors, flags)
-
-        stylesheet = '20260430_BR-FR-Flux2-Schematron-CII_V1.3.1'
-        stylesheet_file = os.path.join(settings.BASE_DIR, 'server/api/cii/' + stylesheet + '.xsl')
-        (output_value, _) = process_by_saxon(proc, content, stylesheet_file)
-        for child in output_value.head.children:
-            failed_elements = (element for element in child.children if element.local_name == 'failed-assert')
-            for element in failed_elements:
-                info = {"stylesheet": stylesheet, "message": element.string_value}
-                for attribute in element.attributes:
-                    info[attribute.local_name] = attribute.string_value
-                errors.append(info) if (info["flag"] == "fatal") else flags.append(info)
-
-    response = ({
-        "version": proc.version,
-        "filename": filename,
-        "content_type": content_type,
+        "xlst": xlst,
         "valid": not errors,
         "errors": errors,
         "flags": flags,
