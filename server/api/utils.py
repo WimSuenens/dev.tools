@@ -7,6 +7,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.conf import settings
 from saxonche import PySaxonProcessor, PyXdmValue
 from werkzeug.utils import secure_filename
+from pathlib import Path
 
 def transform_to_html(file: InMemoryUploadedFile) -> str:
     """
@@ -281,6 +282,20 @@ def validate_cii(proc: PySaxonProcessor, content: str, errors: list, flags: list
                 info[attribute.local_name] = attribute.string_value
             errors.append(info) if (info["flag"] == "fatal") else flags.append(info)
 
+def validate(stylesheet_file: str, proc: PySaxonProcessor, content: str, errors: list, flags: list):
+    # stylesheet = 'EN16931-CII-validation'
+    # stylesheet_file = os.path.join(settings.BASE_DIR, 'server/api/cii/' + stylesheet + '.xslt')
+    # stylesheet = os.path.basename(stylesheet_file)
+    stylesheet = Path(stylesheet_file).stem
+    (output_value, _) = process_by_saxon(proc, content, stylesheet_file)
+    for child in output_value.head.children:
+        failed_elements = (element for element in child.children if element.local_name == 'failed-assert')
+        for element in failed_elements:
+            info = {"stylesheet": stylesheet, "message": element.string_value}
+            for attribute in element.attributes:
+                info[attribute.local_name] = attribute.string_value
+            errors.append(info) if (info["flag"] == "fatal") else flags.append(info)
+
 def validate_en16931_cii(file: InMemoryUploadedFile):
     """
     Validate a EN 16931 CII file.
@@ -291,7 +306,11 @@ def validate_en16931_cii(file: InMemoryUploadedFile):
     flags = []
     content: str = read_xml_from_file(file)
     with PySaxonProcessor(license=False) as proc:
-        validate_cii(proc, content, errors, flags)
+        # stylesheet = 'EN16931-CII-validation'
+        stylesheet_file = os.path.join(settings.BASE_DIR, 'server/api/cii/EN16931-CII-validation.xslt')
+        validate(stylesheet_file, proc, content, errors, flags)
+        stylesheet_file = os.path.join(settings.BASE_DIR, 'server/api/cii/20260430_BR-FR-Flux2-Schematron-CII_V1.3.1.xsl')
+        validate(stylesheet_file, proc, content, errors, flags)
 
     response = ({
         "version": proc.version,

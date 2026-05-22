@@ -19,7 +19,7 @@ pipenv requirements > requirements.txt
 ```
 
 ```bash
-docker buildx build --platform linux/amd64,linux/arm64 -t wimsuenens/dev.tools:latest -t wimsuenens/dev.tools:1.0.2 .
+docker buildx build --platform linux/amd64,linux/arm64 -t wimsuenens/dev.tools:latest -t wimsuenens/dev.tools:1.0.3 .
 ```
 
 ```bash
